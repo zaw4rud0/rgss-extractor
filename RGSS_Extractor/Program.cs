@@ -42,7 +42,7 @@ namespace RGSS_Extractor
 
                 var mainParser = new MainParser();
                 mainParser.ParseFile(args[0]);
-                mainParser.ExportArchive();
+                mainParser.ExportArchive(args[1]);
                 FreeConsole();
                 return;
             }

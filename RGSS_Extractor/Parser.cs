@@ -67,20 +67,20 @@ namespace RGSS_Extractor
             return data;
         }
 
-        public void WriteFile(Entry e)
+        public void WriteFile(Entry e, string path)
         {
-            CreateFile(e.Name);
+            CreateFile(Path.Join(path, e.Name));
             data = ReadData(e.Offset, e.Size, e.DataKey);
             outFile.Write(data);
             outFile.Close();
             Console.WriteLine("{0} wrote out successfully", e.Name);
         }
 
-        public void WriteEntries()
+        public void WriteEntries(string path)
         {
             foreach (var entry in entries)
             {
-                WriteFile(entry);
+                WriteFile(entry, path);
             }
         }
 

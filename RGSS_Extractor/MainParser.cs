@@ -35,19 +35,19 @@ public class MainParser
         return parser.ReadData(entry.Offset, entry.Size, entry.DataKey);
     }
 
-    public void ExportFile(Entry entry)
+    public void ExportFile(Entry entry, string path)
     {
-        parser.WriteFile(entry);
+        parser.WriteFile(entry, path);
     }
 
-    public void ExportArchive()
+    public void ExportArchive(string path)
     {
         if (parser == null)
         {
             return;
         }
 
-        parser.WriteEntries();
+        parser.WriteEntries(path);
     }
 
     [Obsolete]

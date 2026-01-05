@@ -7,223 +7,228 @@ using System.Windows.Forms;
 
 namespace RGSS_Extractor
 {
-	public class MainForm : Form
-	{
-		private MainParser parser = new MainParser();
+    public class MainForm : Form
+    {
+        private MainParser parser = new MainParser();
 
-		private List<Entry> entries = new List<Entry>();
+        private List<Entry> entries = new List<Entry>();
 
-		private string archivePath = string.Empty;
+        private string archivePath = string.Empty;
 
-		private IContainer components;
+        private IContainer components;
 
-		private SplitContainer splitContainer;
+        private SplitContainer splitContainer;
 
-		private TreeView explorerView;
+        private TreeView explorerView;
 
-		private OpenFileDialog openFileDialog;
+        private OpenFileDialog openFileDialog;
+        
+        private FolderBrowserDialog writeExportDialog;
 
-		private MenuStrip menuStrip;
+        private MenuStrip menuStrip;
 
-		private ToolStripMenuItem fileToolStripMenuItem;
+        private ToolStripMenuItem fileToolStripMenuItem;
 
-		private ToolStripMenuItem openToolStripMenuItem;
+        private ToolStripMenuItem openToolStripMenuItem;
 
-		private ToolStripMenuItem closeArchiveToolStripMenuItem;
+        private ToolStripMenuItem closeArchiveToolStripMenuItem;
 
-		private ToolStripSeparator toolStripSeparator;
+        private ToolStripSeparator toolStripSeparator;
 
-		private ToolStripMenuItem exitToolStripMenuItem;
+        private ToolStripMenuItem exitToolStripMenuItem;
 
-		private PictureBox previewPictureBox;
+        private PictureBox previewPictureBox;
 
-		private ToolStripMenuItem exportArchiveToolStripMenuItem;
+        private ToolStripMenuItem exportArchiveToolStripMenuItem;
 
-		private ContextMenuStrip explorerMenu;
+        private ContextMenuStrip explorerMenu;
 
-		private ToolStripMenuItem exportToolStripMenuItem;
+        private ToolStripMenuItem exportToolStripMenuItem;
 
-		public MainForm()
-		{
-			this.InitializeComponent();
-		}
+        public MainForm()
+        {
+            this.InitializeComponent();
+        }
 
-		private void OnDragEnter(object sender, DragEventArgs e)
-		{
-			if (e.Data.GetDataPresent(DataFormats.FileDrop))
-			{
-				e.Effect = DragDropEffects.Copy;
-			}
-		}
+        private void OnDragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                e.Effect = DragDropEffects.Copy;
+            }
+        }
 
-		private void OnDragDrop(object sender, DragEventArgs e)
-		{
-			if (e.Data.GetDataPresent(DataFormats.FileDrop))
-			{
-				e.Effect = DragDropEffects.Copy;
-			}
-			string[] array = (string[])e.Data.GetData(DataFormats.FileDrop);
-			this.ReadArchive(array[0]);
-		}
+        private void OnDragDrop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                e.Effect = DragDropEffects.Copy;
+            }
+            string[] array = (string[])e.Data.GetData(DataFormats.FileDrop);
+            this.ReadArchive(array[0]);
+        }
 
-		private void ReadArchive(string path)
-		{
-			if (path == "")
-			{
-				return;
-			}
-			this.CloseArchive();
-			this.entries = this.parser.ParseFile(path);
-			if (this.entries != null)
-			{
-				this.BuildFileList(this.entries);
-				this.archivePath = path;
-			}
-		}
+        private void ReadArchive(string path)
+        {
+            if (path == "")
+            {
+                return;
+            }
+            this.CloseArchive();
+            this.entries = this.parser.ParseFile(path);
+            if (this.entries != null)
+            {
+                this.BuildFileList(this.entries);
+                this.archivePath = path;
+            }
+        }
 
-		private void ExportArchive()
-		{
-			parser?.ExportArchive();
-		}
+        private void ExportArchive(string path)
+        {
+            parser?.ExportArchive(path);
+        }
 
-		private void CloseArchive()
-		{
-			if (this.archivePath != "")
-			{
-				explorerView.Nodes.Clear();
-				previewPictureBox.Image = null;
-				parser.CloseFile();
-			}
-		}
+        private void CloseArchive()
+        {
+            if (this.archivePath != "")
+            {
+                explorerView.Nodes.Clear();
+                previewPictureBox.Image = null;
+                parser.CloseFile();
+            }
+        }
 
-		private void BuildFileList(List<Entry> entries)
-		{
-			foreach (var entry in entries)
-			{
-				var array = entry.Name.Split(Path.DirectorySeparatorChar);
-				var node = GetRoot(array[0]);
-				AddPath(node, array, entry);
-			}
-		}
+        private void BuildFileList(List<Entry> entries)
+        {
+            foreach (var entry in entries)
+            {
+                var array = entry.Name.Split(Path.DirectorySeparatorChar);
+                var node = GetRoot(array[0]);
+                AddPath(node, array, entry);
+            }
+        }
 
-		private void AddPath(TreeNode node, string[] pathBits, Entry e)
-		{
-			for (var i = 1; i < pathBits.Length; i++)
-			{
-				node = AddNode(node, pathBits[i]);
-			}
-			node.Tag = e;
-		}
+        private void AddPath(TreeNode node, string[] pathBits, Entry e)
+        {
+            for (var i = 1; i < pathBits.Length; i++)
+            {
+                node = AddNode(node, pathBits[i]);
+            }
+            node.Tag = e;
+        }
 
-		private TreeNode GetRoot(string key)
-		{
-			if (explorerView.Nodes.ContainsKey(key))
-			{
-				return explorerView.Nodes[key];
-			}
-			return explorerView.Nodes.Add(key, key);
-		}
+        private TreeNode GetRoot(string key)
+        {
+            if (explorerView.Nodes.ContainsKey(key))
+            {
+                return explorerView.Nodes[key];
+            }
+            return explorerView.Nodes.Add(key, key);
+        }
 
-		private TreeNode AddNode(TreeNode node, string key)
-		{
-			if (node.Nodes.ContainsKey(key))
-			{
-				return node.Nodes[key];
-			}
-			return node.Nodes.Add(key, key);
-		}
+        private TreeNode AddNode(TreeNode node, string key)
+        {
+            if (node.Nodes.ContainsKey(key))
+            {
+                return node.Nodes[key];
+            }
+            return node.Nodes.Add(key, key);
+        }
 
-		private void ShowImage(Entry entry)
-		{
-			byte[] buffer = this.parser.GetFileData(entry);
-			MemoryStream stream = new MemoryStream(buffer);
-			Image image = Image.FromStream(stream);
-			this.previewPictureBox.Image = image;
-		}
+        private void ShowImage(Entry entry)
+        {
+            byte[] buffer = this.parser.GetFileData(entry);
+            MemoryStream stream = new MemoryStream(buffer);
+            Image image = Image.FromStream(stream);
+            this.previewPictureBox.Image = image;
+        }
 
-		private void DetermineAction(Entry entry)
-		{
-			if (entry.Name.EndsWith(".png"))
-			{
-				this.ShowImage(entry);
-			}
-		}
+        private void DetermineAction(Entry entry)
+        {
+            if (entry.Name.EndsWith(".png"))
+            {
+                this.ShowImage(entry);
+            }
+        }
 
-		private void OnExplorerViewAfterSelect(object sender, TreeViewEventArgs e)
-		{
-			if (this.explorerView.SelectedNode == null || this.explorerView.SelectedNode.Tag == null)
-			{
-				return;
-			}
-			Entry entry = (Entry)this.explorerView.SelectedNode.Tag;
-			this.DetermineAction(entry);
-		}
+        private void OnExplorerViewAfterSelect(object sender, TreeViewEventArgs e)
+        {
+            if (this.explorerView.SelectedNode == null || this.explorerView.SelectedNode.Tag == null)
+            {
+                return;
+            }
+            Entry entry = (Entry)this.explorerView.SelectedNode.Tag;
+            this.DetermineAction(entry);
+        }
 
-		private void ExportNodes(TreeNode node)
-		{
-			if (node.Tag != null)
-			{
-				Entry e = (Entry)node.Tag;
-				this.parser.ExportFile(e);
-			}
-			foreach (TreeNode treeNode in node.Nodes)
-			{
-				this.ExportNodes(treeNode);
-				if (treeNode.Tag != null)
-				{
-					Entry e = (Entry)treeNode.Tag;
-					this.parser.ExportFile(e);
-				}
-			}
-		}
+        private void ExportNodes(TreeNode node, string path)
+        {
+            if (node.Tag != null)
+            {
+                Entry e = (Entry)node.Tag;
+                this.parser.ExportFile(e, path);
+            }
+            foreach (TreeNode treeNode in node.Nodes)
+            {
+                this.ExportNodes(treeNode, path);
+                if (treeNode.Tag != null)
+                {
+                    Entry e = (Entry)treeNode.Tag;
+                    this.parser.ExportFile(e, path);
+                }
+            }
 
-		private void OnExportMenuItemClick(object sender, EventArgs e)
-		{
-			if (this.explorerView.SelectedNode == null)
-			{
-				return;
-			}
-			this.ExportNodes(this.explorerView.SelectedNode);
-		}
+            MessageBox.Show(this, $"Data exported to {path}", "Export finished", MessageBoxButtons.OK);
+        }
 
-		private void OnExplorerViewNodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
-		{
-			this.explorerView.SelectedNode = e.Node;
-		}
+        private void OnExportMenuItemClick(object sender, EventArgs e)
+        {
+            if (this.explorerView.SelectedNode == null)
+            {
+                return;
+            }
+            this.ExportNodes(this.explorerView.SelectedNode, writeExportDialog.SelectedPath);
+        }
 
-		private void OnOpenMenuItemClick(object sender, EventArgs e)
-		{
-			this.openFileDialog.ShowDialog();
-			this.ReadArchive(this.openFileDialog.FileName);
-		}
+        private void OnExplorerViewNodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
+        {
+            this.explorerView.SelectedNode = e.Node;
+        }
 
-		private void OnExportArchiveMenuItemClick(object sender, EventArgs e)
-		{
-			this.ExportArchive();
-		}
+        private void OnOpenMenuItemClick(object sender, EventArgs e)
+        {
+            this.openFileDialog.ShowDialog();
+            this.ReadArchive(this.openFileDialog.FileName);
+        }
 
-		private void OnCloseArchiveMenuItemClick(object sender, EventArgs e)
-		{
-			this.CloseArchive();
-		}
+        private void OnExportArchiveMenuItemClick(object sender, EventArgs e)
+        {
+            writeExportDialog.ShowDialog();
+            this.ExportArchive(writeExportDialog.SelectedPath);
+        }
 
-		private void OnExitMenuItemClick(object sender, EventArgs e)
-		{
-			this.CloseArchive();
-			Application.Exit();
-		}
+        private void OnCloseArchiveMenuItemClick(object sender, EventArgs e)
+        {
+            this.CloseArchive();
+        }
 
-		protected override void Dispose(bool disposing)
-		{
-			if (disposing && this.components != null)
-			{
-				this.components.Dispose();
-			}
-			base.Dispose(disposing);
-		}
+        private void OnExitMenuItemClick(object sender, EventArgs e)
+        {
+            this.CloseArchive();
+            Application.Exit();
+        }
 
-		private void InitializeComponent()
-		{
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && this.components != null)
+            {
+                this.components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        private void InitializeComponent()
+        {
             this.components = new System.ComponentModel.Container();
             this.splitContainer = new System.Windows.Forms.SplitContainer();
             this.explorerView = new System.Windows.Forms.TreeView();
@@ -231,6 +236,7 @@ namespace RGSS_Extractor
             this.exportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.previewPictureBox = new System.Windows.Forms.PictureBox();
             this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
+            this.writeExportDialog = new System.Windows.Forms.FolderBrowserDialog();
             this.menuStrip = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -385,7 +391,7 @@ namespace RGSS_Extractor
             this.ResumeLayout(false);
             this.PerformLayout();
 
-		}
+        }
 
         private void OnMainFormLoad(object sender, EventArgs e)
         {
