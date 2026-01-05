@@ -2,45 +2,39 @@ name: .NET Release Workflow
 
 on:
   push:
-    branches: [ main ]
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
 
 jobs:
   build:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: '8.0'
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
 
-    - name: Restore dependencies
-      run: dotnet restore
+      - name: Restore
+        run: dotnet restore
 
-    - name: Build and Publish
-      run: dotnet publish -c Release -r win-x64 /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true --output publish/
+      - name: Publish (win-x64, single file)
+        run: dotnet publish -c Release -r win-x64 --self-contained true ^
+          /p:PublishSingleFile=true ^
+          /p:IncludeNativeLibrariesForSelfExtract=true ^
+          --output publish/
 
-    - name: Zip the output
-      run: Compress-Archive -Path publish/* -DestinationPath release.zip
+      - name: Zip publish output
+        run: Compress-Archive -Path publish/* -DestinationPath release-win64.zip
 
-    # Get Release ID for the existing release
-    - name: Get Release ID
-      id: get_release
-      run: |
-        echo "RELEASE_ID=$(curl -s -X GET -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-        -H "Accept: application/vnd.github.v3+json" \
-        "https://api.github.com/repos/${{ github.repository }}/releases/tags/v1.0" | jq -r .id)" >> $GITHUB_ENV
-      shell: bash
-
-    # Upload Release Asset to the existing release
-    - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: https://uploads.github.com/repos/${{ github.repository }}/releases/${{ env.RELEASE_ID }}/assets?name=release-win64.zip
-        asset_path: ./release.zip
-        asset_name: release-win64.zip
-        asset_content_type: application/zip
+      - name: Create/Update GitHub Release + upload asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-win64.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
